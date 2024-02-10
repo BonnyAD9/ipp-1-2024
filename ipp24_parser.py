@@ -1,8 +1,6 @@
 from typing import TextIO, Union
 from lexer import Lexer, Token, TokenType
-
-ERR_INVALID_HEADER = 21
-ERR_OTHER = 23
+from errors import Error
 
 _VAR = [TokenType.IDENT]
 _SYMB = [
@@ -97,11 +95,11 @@ class Instruction:
         self.opcode = name.upper()
         self.args = args
 
-    def validate(self) -> Union[tuple[int, str], None]:
+    def validate(self) -> Union[tuple[Error, str], None]:
         shape = _INSTRUCTIONS[self.opcode]
         if len(shape) != len(self.args):
             return (
-                ERR_OTHER,
+                Error.PARSE,
                 "Invalid number of arguments for instruciton '"
                     + self.opcode
                     + "'"
@@ -113,7 +111,7 @@ class Instruction:
                 continue
             if have.type not in expect:
                 return (
-                    ERR_OTHER,
+                    Error.PARSE,
                     "Invalid arguments to '" + self.opcode + "'",
                 )
 
@@ -131,7 +129,7 @@ class Parser:
     def __init__(self, lexer: Lexer) -> None:
         self.lexer = lexer
         self.cur = Token(TokenType.NEWLINE)
-        self.err_code = 0
+        self.err_code = Error.NONE
         self.err_msg = ""
 
     def parse(self) -> list[Instruction]:
@@ -142,7 +140,7 @@ class Parser:
         # check the language header
         if self.cur.type != TokenType.DIRECTIVE \
             or self.cur.value != ".IPPcode24":
-            self._error("Invalid code header", ERR_INVALID_HEADER)
+            self._error("Invalid code header", Error.IVALID_HEADER)
             return []
 
         # there is bug in pylance, this will outsmart it so that it doesn't
@@ -160,7 +158,7 @@ class Parser:
 
         res: list[Instruction] = []
 
-        while self.cur.type != TokenType.EOF and self.err_code == 0:
+        while self.cur.type != TokenType.EOF and self.err_code == Error.NONE:
             if self.cur.type == TokenType.DIRECTIVE:
                 self._error("Unexpected token DIRECTIVE")
                 return []
@@ -204,8 +202,8 @@ class Parser:
             self._error(self.cur.value)
         return self.cur
 
-    def _error(self, msg: str, code: int = ERR_OTHER) -> None:
-        if self.err_code == 0:
+    def _error(self, msg: str, code: Error = Error.PARSE) -> None:
+        if self.err_code == Error.NONE:
             self.err_code = code
             self.err_msg = msg
         return None
