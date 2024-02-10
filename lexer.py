@@ -7,21 +7,22 @@ class TokenType(Enum):
     ERR = auto()
     NEWLINE = auto()
     DIRECTIVE = auto()
-    INSTRUCTION = auto()
+    LABEL = auto()
     IDENT = auto()
     NIL = auto()
     BOOL = auto()
     INT = auto()
     STRING = auto()
+    TYPE = auto()
 
 class Token:
     def __init__(self, type: TokenType, value: str = ""):
         self.type = type
         self.value = value
 
-_IDENT_RE = re.compile(r"[0-9A-Za-z_\\-$&%*!?]*")
-_INT_RE = re.compile(r"[+\\-]([0-9]|0x[0-9A-Fa-f]|0o[0-7])")
-_STRING_RE = re.compile(r"([^\\\\]|\\\\[0-9][0-9][0-9])*")
+_IDENT_RE = re.compile(r"[0-9A-Za-z_\-$&%*!?]*")
+_INT_RE = re.compile(r"[+\-]([0-9]|0x[0-9A-Fa-f]|0o[0-7])")
+_STRING_RE = re.compile(r"([^\\]|\\[0-9][0-9][0-9])*")
 
 class Lexer:
     def __init__(self, input: TextIO) -> None:
@@ -39,7 +40,11 @@ class Lexer:
 
         self.queue.append(Token(TokenType.NEWLINE))
         for s in reversed(line.split()):
-            self.queue.append(Lexer._parse_token(s))
+            if s[0] == "#":
+                self.queue.clear()
+                self.queue.append(Token(TokenType.NEWLINE))
+            else:
+                self.queue.append(Lexer._parse_token(s))
 
         return self.queue.pop()
 
@@ -48,13 +53,16 @@ class Lexer:
         if s[0] == ".":
             return Token(TokenType.DIRECTIVE, s)
 
+        if s == "string@":
+            return Token(TokenType.STRING)
+
         spl = s.split("@")
         if len(spl) == 1:
-            Lexer._parse_instruction(s)
+            return Lexer._parse_label(s)
 
         if len(spl) > 2:
             if spl[0] == "string":
-                return Lexer._parse_string("".join(s[1:]))
+                return Lexer._parse_string("@".join(spl[1:]))
             else:
                 return Token(
                     TokenType.ERR,
@@ -82,8 +90,11 @@ class Lexer:
                 )
 
     @staticmethod
-    def _parse_instruction(s: str) -> Token:
-        return Token(TokenType.INSTRUCTION, s.upper())
+    def _parse_label(s: str) -> Token:
+        if _IDENT_RE.fullmatch(s):
+            return Token(TokenType.LABEL, s.replace("&", "&amp;"))
+        else:
+            return Token(TokenType.ERR, "Invalid label name '" + s + "'")
 
     @staticmethod
     def _parse_ident(s: str) -> Token:
@@ -96,7 +107,7 @@ class Lexer:
     @staticmethod
     def _parse_nil(s: str) -> Token:
         if s == "nil":
-            return Token(TokenType.NIL)
+            return Token(TokenType.NIL, "nil")
         else:
             return Token(TokenType.ERR, "type 'nil' can only have value 'nil'")
 
