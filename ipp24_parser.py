@@ -266,4 +266,3 @@ class Parser:
             self.err_code = code
             self.err_msg = msg
         return None
-
