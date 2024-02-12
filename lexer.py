@@ -64,11 +64,14 @@ class Lexer:
         # the queue.
         for s in reversed(line.split()):
             # check for comments
-            if s[0] == "#":
+            spl = s.split('#', maxsplit=1)
+            if len(spl) > 1:
                 # reading from back, ignore what was already readed
                 self.queue.clear()
                 # don't forget to add the newline as the last token
                 self.queue.append(Token(TokenType.NEWLINE))
+                if spl[0]:
+                    self.queue.append(Lexer._parse_token(spl[0]))
             else:
                 self.queue.append(Lexer._parse_token(s))
 

@@ -254,8 +254,8 @@ class Parser:
         return res
 
     def _next_tok(self) -> Token:
-        # Implicitly propagate lexer errors
         self.cur = self.lexer.next()
+        # Implicitly propagate lexer errors
         if self.cur.type == TokenType.ERR:
             self._error(self.cur.value)
         return self.cur
