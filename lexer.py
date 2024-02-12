@@ -7,6 +7,8 @@ class TokenType(Enum):
     ERR = auto()
     NEWLINE = auto()
     DIRECTIVE = auto()
+    # label represents opcode, label name or type. Which of these it is is
+    # determined by parser based on context.
     LABEL = auto()
     IDENT = auto()
     NIL = auto()
@@ -16,50 +18,82 @@ class TokenType(Enum):
     TYPE = auto()
 
 class Token:
+    """Contains the token type and string value of the token."""
+
     def __init__(self, type: TokenType, value: str = ""):
         self.type = type
         self.value = value
 
+# regexes for checking validity of some tokens
+
+# Checks for valid identifiers, labels or instructions
 _IDENT_RE = re.compile(r"[0-9A-Za-z_\-$&%*!?]*")
+# Checks for valid integer literals
 _INT_RE = re.compile(r"[+\-]([0-9]|0x[0-9A-Fa-f]|0o[0-7])")
+# checks for valid string literals
 _STRING_RE = re.compile(r"([^\\]|\\[0-9][0-9][0-9])*")
 
 class Lexer:
     def __init__(self, input: TextIO) -> None:
+        # The input stream
         self.input = input
-        self.cur = " "
+        # Tokens to be returned, the list is reversed (first token to be
+        # returned is the last in the list)
         self.queue: list[Token] = []
 
     def next(self) -> Token:
+        """Gets the next token"""
+
+        # if the queue contains tokens, return from there otherwise read new
+        # tokens
         return self._read_next() if not self.queue else self.queue.pop()
 
     def _read_next(self) -> Token:
+        """Reads next line of input and creates it into tokens"""
+
+        # read next line and check for eof
         line = self.input.readline()
         if not line:
             return Token(TokenType.EOF)
 
+        # last token of each line is always newline
         self.queue.append(Token(TokenType.NEWLINE))
+        # The tokens in the source are always separated by whitespace and there
+        # are no other whitespaces so we can split by whitespace.
+        # The tokens are reversed so that they can be efficiently readed from
+        # the queue.
         for s in reversed(line.split()):
+            # check for comments
             if s[0] == "#":
+                # reading from back, ignore what was already readed
                 self.queue.clear()
+                # don't forget to add the newline as the last token
                 self.queue.append(Token(TokenType.NEWLINE))
             else:
                 self.queue.append(Lexer._parse_token(s))
 
+        # the queue always contains at least newline
         return self.queue.pop()
 
     @staticmethod
     def _parse_token(s: str) -> Token:
+        # check for special directives (e.g. '.IPPcode24')
         if s[0] == ".":
             return Token(TokenType.DIRECTIVE, s)
 
+        # empty string literals are special case where there is nothing after
+        # the `@` symbol
         if s == "string@":
             return Token(TokenType.STRING)
+
+        # split by `@`, if there is no `@` it is label, otherwise the first
+        # of the splitted array will determine the token type
 
         spl = s.split("@")
         if len(spl) == 1:
             return Lexer._parse_label(s)
 
+        # string literals can contain `@`
         if len(spl) > 2:
             if spl[0] == "string":
                 return Lexer._parse_string("@".join(spl[1:]))
@@ -72,6 +106,7 @@ class Lexer:
         type = spl[0]
         value = spl[1]
 
+        # check for the type of the token
         match type:
             case "TF" | "LF" | "GF":
                 return Lexer._parse_ident(s)
@@ -98,6 +133,7 @@ class Lexer:
 
     @staticmethod
     def _parse_ident(s: str) -> Token:
+        # `s` also contains the frame, run the checks only on the name
         id = s[3:]
         if _IDENT_RE.fullmatch(id):
             return Token(TokenType.IDENT, s.replace("&", "&amp;"))
