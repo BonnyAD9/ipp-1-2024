@@ -123,10 +123,10 @@ class Instruction:
                 error message if the arguments are incorrect.
         """
 
-        shape = _INSTRUCTIONS[self.opcode]
+        shape = _INSTRUCTIONS.get(self.opcode)
 
         # check if the opcode is valid
-        if not shape:
+        if shape == None:
             return (
                 Error.INVALID_OPCODE,
                 "Unknown instruction '" + self.opcode + "'"
