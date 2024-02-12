@@ -29,7 +29,7 @@ class Token:
 # Checks for valid identifiers, labels or instructions
 _IDENT_RE = re.compile(r"[A-Za-z_\-$&%*!?][0-9A-Za-z_\-$&%*!?]*")
 # Checks for valid integer literals
-_INT_RE = re.compile(r"[+\-]([0-9]|0x[0-9A-Fa-f]|0o[0-7])")
+_INT_RE = re.compile(r"[+\-]?([0-9]*|0x[0-9A-Fa-f]*|0o[0-7]*)")
 # checks for valid string literals
 _STRING_RE = re.compile(r"([^\\]|\\[0-9][0-9][0-9])*")
 

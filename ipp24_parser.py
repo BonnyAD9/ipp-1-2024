@@ -40,7 +40,7 @@ _INSTRUCTIONS = {
     "EQ": [_VAR, _SYMB, _SYMB],
     "AND": [_VAR, _SYMB, _SYMB],
     "OR": [_VAR, _SYMB, _SYMB],
-    "NOT": [_VAR, _SYMB, _SYMB],
+    "NOT": [_VAR, _SYMB],
     "INT2CHAR": [_VAR, _SYMB],
     "STRI2INT": [_VAR, _SYMB, _SYMB],
     "READ": [_VAR, _TYPE],
@@ -94,6 +94,8 @@ class Arg:
                 type_str = "nil"
             case TokenType.BOOL:
                 type_str = "bool"
+            case TokenType.INT:
+                type_str = "int"
             case TokenType.STRING:
                 type_str = "string"
             case TokenType.TYPE:
@@ -136,7 +138,7 @@ class Instruction:
         if len(shape) != len(self.args):
             return (
                 Error.PARSE,
-                "Invalid number of arguments for instruciton '"
+                "Invalid number of arguments for instruction '"
                     + self.opcode
                     + "'"
             )
@@ -149,7 +151,7 @@ class Instruction:
             if expect[0] == TokenType.TYPE \
                 and have.type == TokenType.LABEL \
                 and have.value in ["nil", "bool", "int", "string"]:
-                have.type = TokenType.LABEL
+                have.type = TokenType.TYPE
                 continue
             if have.type not in expect:
                 return (
@@ -212,7 +214,8 @@ class Parser:
             # DIRECTIVE can now never appear.
             if self.cur.type == TokenType.DIRECTIVE:
                 self._error(
-                    "Unexpected token DIRECTIVE(" + self.cur.value + ")"
+                    "Unexpected token DIRECTIVE(" + self.cur.value + ")",
+                    Error.INVALID_OPCODE
                 )
                 return []
 
