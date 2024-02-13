@@ -56,7 +56,7 @@ class Stats:
             case StatType.PRINT:
                 return stat.value + "\n"
             case StatType.EOL:
-                return "\n\n"
+                return "\n"
             case _:
                 if not self.examined:
                     self._examine()
@@ -121,7 +121,7 @@ class Stats:
 
         frequent = ",".join(map(
             lambda i: i[0],
-            sorted(freqs.items(), key=lambda i: i[1], reverse = True)
+            sorted(freqs.items(), key = lambda i: i[1], reverse = True)
         ))
 
         self.labels = str(labels) + "\n"

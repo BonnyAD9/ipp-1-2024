@@ -1,57 +1,27 @@
 #!/usr/bin/python3
 
-from enum import Enum, auto
 import sys
 from typing import TextIO
 from lexer import Lexer
 from ipp24_parser import Instruction, Parser
 from errors import Error
-
-class Action(Enum):
-    """Action based on CLI arguments."""
-
-    HELP = auto()
-    PARSE = auto()
-    ERR = auto()
-
-class Args:
-    """Parsed CLI arguments"""
-
-    def __init__(self, action: Action, value: str = ""):
-        self.action = action
-        self.value = value
+from args import Action, Args, parse_args
+from statp import Stats
 
 def main(argv: list[str]) -> Error:
     args = parse_args(argv)
     match args.action:
         case Action.PARSE:
-            return parse()
+            return parse(args, open("testfile.IPPcode24"))
         case Action.HELP:
             help()
             return Error.NONE
         case Action.ERR:
-            print("error:", args.value, file = sys.stderr)
-            return Error.ARGS
+            print("error:", args.err_msg, file = sys.stderr)
+            return args.err_code
     return Error.NONE
 
-def parse_args(args: list[str]) -> Args:
-    # simple parsing, there can be only 0 or 1 arguments
-    match len(args):
-        case 1:
-            return Args(Action.PARSE)
-        case 2:
-            pass
-        case _:
-            return Args(Action.ERR, "Invalid number of arguments")
-
-    # check if the single argument is valid
-    match args[1]:
-        case "--help" | "-h" | "-?":
-            return Args(Action.HELP)
-        case _:
-            return Args(Action.ERR, "Invalid argument '" + args[1] + "'")
-
-def parse(input: TextIO = sys.stdin, output: TextIO = sys.stdout) -> Error:
+def parse(args: Args, input: TextIO = sys.stdin, output: TextIO = sys.stdout) -> Error:
     """Parses IPPcode from `input` to xml into `output`"""
 
     # parse the input
@@ -66,6 +36,11 @@ def parse(input: TextIO = sys.stdin, output: TextIO = sys.stdout) -> Error:
 
     # generate xml into output
     make_xml(insts, output)
+
+    stats = Stats(insts, lexer)
+    for s in args.stats:
+        with open(s.filename, "w") as f:
+            stats.print_stats(s.stats, f)
 
     return Error.NONE
 
