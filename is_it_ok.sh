@@ -293,6 +293,8 @@ for SCRIPT in "${REQUIRED_SCRIPTS[@]}" "${NON_REQUIRED_SCRIPTS[@]}"; do
 done
 
 #   Kontrola
+EXTENSIONS=rozsireni
+
 if [[ $TASK -eq 2 ]]; then
   EXTENSIONS=$TASK2_SUBDIR/$EXTENSIONS
 fi
