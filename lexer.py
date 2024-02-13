@@ -40,6 +40,8 @@ class Lexer:
         # Tokens to be returned, the list is reversed (first token to be
         # returned is the last in the list)
         self.queue: list[Token] = []
+        # comments will be ignored with tokenization, the stats about them must
+        # be collected here
         self.comment_count = 0
 
     def next(self) -> Token:
@@ -78,6 +80,7 @@ class Lexer:
             else:
                 self.queue.append(Lexer._parse_token(s))
 
+        # increase comment count if there was comment on this line
         if comment:
             self.comment_count += 1
 
@@ -109,7 +112,7 @@ class Lexer:
             else:
                 return Token(
                     TokenType.ERR,
-                    "unexpected character '@' in '" + s + "'"
+                    f"unexpected character '@' in '{s}'"
                 )
 
         type = spl[0]
@@ -130,7 +133,7 @@ class Lexer:
             case _:
                 return Token(
                     TokenType.ERR,
-                    "Unknown data type '" + type + "'"
+                    f"Unknown data type '{type}'"
                 )
 
     @staticmethod
@@ -138,7 +141,7 @@ class Lexer:
         if _IDENT_RE.fullmatch(s):
             return Token(TokenType.LABEL, s.replace("&", "&amp;"))
         else:
-            return Token(TokenType.ERR, "Invalid label name '" + s + "'")
+            return Token(TokenType.ERR, f"Invalid label name '{s}'")
 
     @staticmethod
     def _parse_ident(s: str) -> Token:
@@ -147,7 +150,7 @@ class Lexer:
         if _IDENT_RE.fullmatch(id):
             return Token(TokenType.IDENT, s.replace("&", "&amp;"))
         else:
-            return Token(TokenType.ERR, "Invalid variable name '" + s + "'")
+            return Token(TokenType.ERR, f"Invalid variable name '{s}'")
 
     @staticmethod
     def _parse_nil(s: str) -> Token:
@@ -164,14 +167,14 @@ class Lexer:
             case "false":
                 return Token(TokenType.BOOL, "false")
             case _:
-                return Token(TokenType.ERR, "Invalid bool value '" + s + "'")
+                return Token(TokenType.ERR, f"Invalid bool value '{s}'")
 
     @staticmethod
     def _parse_int(s: str) -> Token:
         if _INT_RE.fullmatch(s):
             return Token(TokenType.INT, s)
         else:
-            return Token(TokenType.ERR, "Invalid int value '" + s + "'")
+            return Token(TokenType.ERR, f"Invalid int value '{s}'")
 
     @staticmethod
     def _parse_string(s: str) -> Token:
@@ -183,4 +186,4 @@ class Lexer:
                     .replace(">", "&gt;")
             )
         else:
-            return Token(TokenType.ERR, "Invalid string value '" + s + "'")
+            return Token(TokenType.ERR, f"Invalid string value '{s}'")

@@ -21,7 +21,11 @@ def main(argv: list[str]) -> Error:
             return args.err_code
     return Error.NONE
 
-def parse(args: Args, input: TextIO = sys.stdin, output: TextIO = sys.stdout) -> Error:
+def parse(
+    args: Args,
+    input: TextIO = sys.stdin,
+    output: TextIO = sys.stdout
+) -> Error:
     """Parses IPPcode from `input` to xml into `output`"""
 
     # parse the input
@@ -37,6 +41,7 @@ def parse(args: Args, input: TextIO = sys.stdin, output: TextIO = sys.stdout) ->
     # generate xml into output
     make_xml(insts, output)
 
+    # print the stats
     stats = Stats(insts, lexer)
     for s in args.stats:
         with open(s.filename, "w") as f:
@@ -78,6 +83,37 @@ Usage:
 Options:
   -h  -?  --help
     prints this help
+
+  --stats=<filename>
+    Outputs the stats to the given file. This must appear before any other
+    stats parameters.
+
+  --loc
+    stat - number of instructions
+
+  --comments
+    stat - number of lines with comments on them
+
+  --labels
+    stat - number of labels
+
+  --jumps
+    stat - number of jumps
+
+  --fwjumps
+    stat - number of jumps forward
+
+  --backjumps
+    stat - number of jumps backwards
+
+  --badjumps
+    stat - number of jumps to nonexisting label
+
+  --prints=<text>
+    stat - prints the given text
+
+  --eol
+    stat - empty line
 """
     )
     pass

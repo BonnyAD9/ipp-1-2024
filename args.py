@@ -3,7 +3,6 @@ from typing import Iterator, Union
 from errors import Error
 from statp import Stat, StatType
 
-
 class Action(Enum):
     """Action based on CLI arguments."""
 
@@ -17,20 +16,23 @@ class StatFile:
         self.stats: list[Stat] = []
 
 class Args:
-    """Parsed CLI arguments"""
+    """CLI parser"""
 
-    def __init__(self, it: Iterator[str]) -> None:
+    def __init__(self, args: Iterator[str]) -> None:
         self.action = Action.PARSE
         self.err_code = Error.NONE;
         self.err_msg = ""
         self.stats: list[StatFile] = []
         self.cur: Union[str, None] = None
-        self.it = it
+        self.args = args
 
     def parse(self) -> None:
-        self._next()
+        """Parses the arguments"""
+
+        # skip the first argument
         self._next()
 
+        self._next()
         while self.cur != None:
             match self.cur:
                 case "-h" | "-?" | "--help":
@@ -67,12 +69,14 @@ class Args:
             self._next()
 
     def _add_stat(self, stat: Stat) -> None:
+        # check if there is any --stats file to associate this stat with
         if len(self.stats) == 0:
             self._error("Cannot use '" + str(self.cur) + "' before --stats")
             return
         self.stats[-1].stats.append(stat)
 
     def _add_stats(self, filename: str) -> None:
+        # check if the file is unique
         for s in self.stats:
             if s.filename == filename:
                 self._error(
@@ -83,16 +87,18 @@ class Args:
         self.stats.append(StatFile(filename))
 
     def _next(self) -> Union[str, None]:
-        self.cur = next(self.it, None)
+        self.cur = next(self.args, None)
         return self.cur
 
     def _error(self, msg: str, code: Error = Error.ARGS) -> None:
+        # save only the first error
         if self.err_code == Error.NONE:
             self.err_msg = msg
             self.err_code = code
             self.action = Action.ERR
 
 def parse_args(args: list[str]) -> Args:
+    """Parses the CLI arguments"""
     it = iter(args)
     res = Args(it)
     res.parse()

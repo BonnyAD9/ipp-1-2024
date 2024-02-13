@@ -76,9 +76,7 @@ class Arg:
                 self.type = token.type
                 self.value = token.value
             case _:
-                raise ValueError(
-                    "Invalid token type '" + str(token.type) + "'"
-                )
+                raise ValueError(f"Invalid token type '{token.type}'")
 
     def write_xml(self, order: int, out: TextIO):
         # convert argument to xml element
@@ -101,9 +99,7 @@ class Arg:
             case TokenType.TYPE:
                 type_str = "type"
             case _:
-                raise ValueError(
-                    "Invalid argumen type '" + str(self.type) + "'"
-                )
+                raise ValueError(f"Invalid argumen type 'self.type'")
 
         # write the element
         out.write(f'<arg{order} type="{type_str}">{self.value}</arg{order}>')
@@ -131,16 +127,14 @@ class Instruction:
         if shape == None:
             return (
                 Error.INVALID_OPCODE,
-                "Unknown instruction '" + self.opcode + "'"
+                f"Unknown instruction '{self.opcode}'"
             )
 
         # check if the number of arguments is correct
         if len(shape) != len(self.args):
             return (
                 Error.PARSE,
-                "Invalid number of arguments for instruction '"
-                    + self.opcode
-                    + "'"
+                f"Invalid number of arguments for instruction '{self.opcode}'"
             )
 
         # check if type of each of the arguments matches
@@ -156,7 +150,7 @@ class Instruction:
             if have.type not in expect:
                 return (
                     Error.PARSE,
-                    "Invalid arguments to '" + self.opcode + "'",
+                    f"Invalid arguments to '{self.opcode}'",
                 )
 
         return None
@@ -214,7 +208,7 @@ class Parser:
             # DIRECTIVE can now never appear.
             if self.cur.type == TokenType.DIRECTIVE:
                 self._error(
-                    "Unexpected token DIRECTIVE(" + self.cur.value + ")",
+                    f"Unexpected token DIRECTIVE({self.cur.value})",
                     Error.INVALID_OPCODE
                 )
                 return []
