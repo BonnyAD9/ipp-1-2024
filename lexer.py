@@ -40,6 +40,7 @@ class Lexer:
         # Tokens to be returned, the list is reversed (first token to be
         # returned is the last in the list)
         self.queue: list[Token] = []
+        self.comment_count = 0
 
     def next(self) -> Token:
         """Gets the next token"""
@@ -58,6 +59,7 @@ class Lexer:
 
         # last token of each line is always newline
         self.queue.append(Token(TokenType.NEWLINE))
+        comment = False
         # The tokens in the source are always separated by whitespace and there
         # are no other whitespaces so we can split by whitespace.
         # The tokens are reversed so that they can be efficiently readed from
@@ -66,6 +68,7 @@ class Lexer:
             # check for comments
             spl = s.split('#', maxsplit=1)
             if len(spl) > 1:
+                comment = True
                 # reading from back, ignore what was already readed
                 self.queue.clear()
                 # don't forget to add the newline as the last token
@@ -74,6 +77,9 @@ class Lexer:
                     self.queue.append(Lexer._parse_token(spl[0]))
             else:
                 self.queue.append(Lexer._parse_token(s))
+
+        if comment:
+            self.comment_count += 1
 
         # the queue always contains at least newline
         return self.queue.pop()
