@@ -6,11 +6,12 @@ Login: **xstigl00**
 ## Obecné informace
 
 Implementaci jsem rozdělil do 4 souborů:
-- `parse.py` obsahuje *main*, parsování argumentů příkazové řádky a část
-  generace XML.
+- `parse.py` obsahuje *main*, a část generace XML.
 - `lexer.py` obsahuje třídy `Lexer`, `Token` a `TokenType`
 - `ipp24_parser.py` obsahuje třídy `Parser`, `Instruction` a `Arg`
+- `args.py` obsahuje kód pro parsování argumentů příkazové řádky
 - `errors.py` obsahuje enumeraci s pojmenováním návratových kódů
+- `statp.py` obsahuje kód pro sbírání statistik
 
 Úplně na konci souboru `parse.py` se spouští funkce `main` která se nachází na
 začátku souboru. Toto je první funkce co se spouští. Při spouštění funkce
@@ -101,3 +102,16 @@ tagu `<instruction>` a volá metodu `Arg.write_xml` pro všechny parametry. Ta
 se potom stará o generování tagů `<arg1>`, `<arg2>` a `<arg3>`. Teoreticky
 by mohla vygenerovat i tagy `<arg4>` a dále, ale to nikdy nenastane, protože
 to nedovoluje žádná instrukce v tabulce `_INSTRUCTIONS`.
+
+## STATP
+
+Implementace pro rozšíření *STATP* se nachází v souboru `statp.py`.
+
+Všechny statistiky kromě počtu komentářů se získávají až po zparsování kódu.
+Statistiky o komentářích se získávají při tokenizaci už v lexeru protože dále
+jsou už komentáře igorované.
+
+Statistiky které vyžadují průchod přes instrukce se nepočítají pokud nejsou
+potřeba. Když jsou ale potřeba tak se už spočítají všechny statistiky v jednom
+průuchodu. Pokud už jsou statistiky jednou spočítané tak se už nepočítají znovu
+ale už se jen využívá ta jednou spočítaná hodnota.

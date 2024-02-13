@@ -44,7 +44,13 @@ def parse(
     # print the stats
     stats = Stats(insts, lexer)
     for s in args.stats:
-        with open(s.filename, "w") as f:
+        try:
+            f = open(s.filename, "w")
+        except Exception as e:
+            print("error: failed to open file:", e, file = sys.stderr)
+            return Error.FILE_WRITE
+
+        with f:
             stats.print_stats(s.stats, f)
 
     return Error.NONE

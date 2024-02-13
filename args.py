@@ -81,7 +81,7 @@ class Args:
             if s.filename == filename:
                 self._error(
                     f"Cannot output twice to the same file '{filename}'",
-                    Error.TWICE_SAME_FILE
+                    Error.FILE_WRITE
                 )
                 return
         self.stats.append(StatFile(filename))
