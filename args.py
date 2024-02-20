@@ -20,7 +20,7 @@ class Args:
 
     def __init__(self, args: Iterator[str]) -> None:
         self.action = Action.PARSE
-        self.err_code = Error.NONE;
+        self.err_code = Error.NONE
         self.err_msg = ""
         self.stats: list[StatFile] = []
         self.cur: Union[str, None] = None
@@ -33,7 +33,7 @@ class Args:
         self._next()
 
         self._next()
-        while self.cur != None:
+        while self.cur is not None:
             match self.cur:
                 case "-h" | "-?" | "--help":
                     if self.action != Action.PARSE:

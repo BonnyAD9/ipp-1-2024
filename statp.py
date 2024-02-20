@@ -26,8 +26,8 @@ class StatType(Enum):
     EOL = auto()
 
 class Stat:
-    def __init__(self, type: StatType, value: str = "") -> None:
-        self.type = type
+    def __init__(self, typ: StatType, value: str = "") -> None:
+        self.type = typ
         self.value = value
 
 class Stats:
@@ -108,7 +108,7 @@ class Stats:
                     labels += 1
                     name = inst.args[0].value
                     cnt = jump_cnts.get(name)
-                    if cnt != None and cnt > 0:
+                    if cnt is not None and cnt > 0:
                         fwjumps += cnt
                     jump_cnts[name] = -1
                 # jump where we can determine the direction of it
@@ -117,7 +117,7 @@ class Stats:
                     name = inst.args[0].value
                     cnt = jump_cnts.get(name)
                     # first encounter - jump forward / bad jump
-                    if cnt == None:
+                    if cnt is None:
                         jump_cnts[name] = 1
                     # label has already been encountered - jump backward
                     elif cnt == -1:
@@ -127,7 +127,7 @@ class Stats:
                         jump_cnts[name] = cnt + 1
                 # return is also jump, but the direction is not defined
                 case "RETURN":
-                    jumps += 1;
+                    jumps += 1
                 case _:
                     pass
         # end of iteration of instructions

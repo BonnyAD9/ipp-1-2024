@@ -12,9 +12,9 @@ def main(argv: list[str]) -> Error:
     args = parse_args(argv)
     match args.action:
         case Action.PARSE:
-            return parse(args, open("testfile.IPPcode24"))
+            return parse(args, open("testfile.IPPcode24", encoding = "utf-8"))
         case Action.HELP:
-            help()
+            print_help()
             return Error.NONE
         case Action.ERR:
             print("error:", args.err_msg, file = sys.stderr)
@@ -73,7 +73,7 @@ def make_xml(insts: list[Instruction], out: TextIO):
     # close the program tag
     out.write('</program>')
 
-def help():
+def print_help():
     """Prints help to stdout."""
 
     print(
@@ -122,7 +122,6 @@ Options:
     stat - empty line
 """
     )
-    pass
 
 # ensure that this is executed as program
 if __name__ == "__main__":
@@ -130,4 +129,4 @@ if __name__ == "__main__":
         sys.exit(main(sys.argv))
     except Exception as e:
         print("error:", e, file = sys.stderr)
-        exit(Error.OTHER)
+        sys.exit(Error.OTHER)

@@ -99,7 +99,7 @@ class Arg:
             case TokenType.TYPE:
                 type_str = "type"
             case _:
-                raise ValueError(f"Invalid argumen type 'self.type'")
+                raise ValueError("Invalid argumen type 'self.type'")
 
         # write the element
         out.write(f'<arg{order} type="{type_str}">{self.value}</arg{order}>')
@@ -124,7 +124,7 @@ class Instruction:
         shape = _INSTRUCTIONS.get(self.opcode)
 
         # check if the opcode is valid
-        if shape == None:
+        if shape is None:
             return (
                 Error.INVALID_OPCODE,
                 f"Unknown instruction '{self.opcode}'"
@@ -192,7 +192,7 @@ class Parser:
         self.cur = self._next_tok()
         # ensure there is whitespace after the language header
         if self.cur.type != TokenType.NEWLINE:
-            self._error("Expected newline after code header.");
+            self._error("Expected newline after code header.")
             return []
 
         # skip all whitespaces before code starts
@@ -214,7 +214,7 @@ class Parser:
                 return []
 
             # parse the instruction
-            i = self._parse_instruction();
+            i = self._parse_instruction()
             if not i:
                 return []
 
@@ -234,10 +234,12 @@ class Parser:
         args: list[Arg] = []
         self._next_tok()
         # read arguments while there is valid argument token type
-        while self.cur.type != TokenType.EOF \
-            and self.cur.type != TokenType.ERR \
-            and self.cur.type != TokenType.NEWLINE \
-            and self.cur.type != TokenType.DIRECTIVE:
+        while self.cur.type not in (
+            TokenType.EOF,
+            TokenType.ERR,
+            TokenType.NEWLINE,
+            TokenType.DIRECTIVE
+        ):
             args.append(Arg(self.cur))
             self._next_tok()
 
@@ -262,4 +264,3 @@ class Parser:
         if self.err_code == Error.NONE:
             self.err_code = code
             self.err_msg = msg
-        return None

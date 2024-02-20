@@ -20,8 +20,8 @@ class TokenType(Enum):
 class Token:
     """Contains the token type and string value of the token."""
 
-    def __init__(self, type: TokenType, value: str = ""):
-        self.type = type
+    def __init__(self, typ: TokenType, value: str = ""):
+        self.type = typ
         self.value = value
 
 # regexes for checking validity of some tokens
@@ -109,11 +109,10 @@ class Lexer:
         if len(spl) > 2:
             if spl[0] == "string":
                 return Lexer._parse_string("@".join(spl[1:]))
-            else:
-                return Token(
-                    TokenType.ERR,
-                    f"unexpected character '@' in '{s}'"
-                )
+            return Token(
+                TokenType.ERR,
+                f"unexpected character '@' in '{s}'"
+            )
 
         type = spl[0]
         value = spl[1]
@@ -140,8 +139,7 @@ class Lexer:
     def _parse_label(s: str) -> Token:
         if _IDENT_RE.fullmatch(s):
             return Token(TokenType.LABEL, s.replace("&", "&amp;"))
-        else:
-            return Token(TokenType.ERR, f"Invalid label name '{s}'")
+        return Token(TokenType.ERR, f"Invalid label name '{s}'")
 
     @staticmethod
     def _parse_ident(s: str) -> Token:
@@ -149,15 +147,13 @@ class Lexer:
         id = s[3:]
         if _IDENT_RE.fullmatch(id):
             return Token(TokenType.IDENT, s.replace("&", "&amp;"))
-        else:
-            return Token(TokenType.ERR, f"Invalid variable name '{s}'")
+        return Token(TokenType.ERR, f"Invalid variable name '{s}'")
 
     @staticmethod
     def _parse_nil(s: str) -> Token:
         if s == "nil":
             return Token(TokenType.NIL, "nil")
-        else:
-            return Token(TokenType.ERR, "type 'nil' can only have value 'nil'")
+        return Token(TokenType.ERR, "type 'nil' can only have value 'nil'")
 
     @staticmethod
     def _parse_bool(s: str) -> Token:
@@ -173,8 +169,7 @@ class Lexer:
     def _parse_int(s: str) -> Token:
         if _INT_RE.fullmatch(s):
             return Token(TokenType.INT, s)
-        else:
-            return Token(TokenType.ERR, f"Invalid int value '{s}'")
+        return Token(TokenType.ERR, f"Invalid int value '{s}'")
 
     @staticmethod
     def _parse_string(s: str) -> Token:
@@ -185,5 +180,4 @@ class Lexer:
                     .replace("<", "&lt;")
                     .replace(">", "&gt;")
             )
-        else:
-            return Token(TokenType.ERR, f"Invalid string value '{s}'")
+        return Token(TokenType.ERR, f"Invalid string value '{s}'")
