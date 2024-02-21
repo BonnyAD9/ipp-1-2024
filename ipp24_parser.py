@@ -65,18 +65,8 @@ class Arg:
     def __init__(self, token: Token) -> None:
         # check that the token as valid type. Throw if the type is incorrect
         # because that should never happen and it is a bug.
-        match token.type:
-            case TokenType.LABEL \
-                | TokenType.IDENT \
-                | TokenType.NIL \
-                | TokenType.BOOL \
-                | TokenType.INT \
-                | TokenType.STRING \
-                | TokenType.TYPE:
-                self.type = token.type
-                self.value = token.value
-            case _:
-                raise ValueError(f"Invalid token type '{token.type}'")
+        self.type = token.type
+        self.value = token.value
 
     def write_xml(self, order: int, out: TextIO):
         # convert argument to xml element
@@ -174,93 +164,75 @@ class Parser:
     def __init__(self, lexer: Lexer) -> None:
         self.lexer = lexer
         # current token
-        self.cur = Token(TokenType.NEWLINE)
+        self.cur = []
         # first error code
         self.err_code = Error.NONE
         # first error message
         self.err_msg = ""
 
     def parse(self) -> list[Instruction]:
-        # skip all whitespaces at the start of the file
-        while self.cur.type == TokenType.NEWLINE:
-            self._next_tok()
+        self._next_tok();
 
-        # check the language header
-        if self.cur.type != TokenType.DIRECTIVE \
-            or self.cur.value != ".IPPcode24":
+        if self.cur[0].type != TokenType.DIRECTIVE or self.cur[0].value != ".IPPcode24":
             self._error("Invalid code header", Error.INVALID_HEADER)
             return []
 
-        # there is bug in pylance, this will outsmart it so that it doesn't
-        # show wrong warning
-        self.cur = self._next_tok()
-        # ensure there is whitespace after the language header
-        if self.cur.type != TokenType.NEWLINE:
-            self._error("Expected newline after code header.")
+        if len(self.cur) != 1:
+            self._error("Expected newline after code header")
             return []
 
-        # skip all whitespaces before code starts
-        self._next_tok()
-        while self.cur.type == TokenType.NEWLINE:
-            self._next_tok()
-
-        # read all the instructions
-
+        self.cur = self._next_tok()
         res: list[Instruction] = []
 
-        while self.cur.type != TokenType.EOF and self.err_code == Error.NONE:
-            # DIRECTIVE can now never appear.
-            if self.cur.type == TokenType.DIRECTIVE:
-                self._error(
-                    f"Unexpected token DIRECTIVE({self.cur.value})",
-                    Error.PARSE
-                )
-                return []
-
-            # parse the instruction
+        # read all the instructions
+        while self.cur[0].type != TokenType.EOF and self.err_code == Error.NONE:
             i = self._parse_instruction()
             if not i:
                 return []
-
             res.append(i)
-            # skip all newlines
-            while self.cur.type == TokenType.NEWLINE:
-                self._next_tok()
+            self._next_tok()
 
         return res
 
     def _parse_instruction(self) -> Union[Instruction, None]:
-        inst = self.cur
+        inst = self.cur[0]
         # check correct token for opcode
         if inst.type != TokenType.LABEL:
-            return self._error("Expected instruciton name")
+            return self._error("Expected instruction name")
 
         args: list[Arg] = []
-        self._next_tok()
-        # read arguments while there is valid argument token type
-        while self.cur.type not in (
-            TokenType.EOF,
-            TokenType.ERR,
-            TokenType.NEWLINE,
-            TokenType.DIRECTIVE
-        ):
-            args.append(Arg(self.cur))
-            self._next_tok()
 
-        # create the instruction and validate it
-        res = Instruction(inst.value, args)
-        err = res.validate()
-        if err:
-            self._error(err[1], err[0])
-            return None
+        for a in self.cur[1:]:
+            arg = Parser._new_arg(a)
+            if arg is None:
+                return self._error("Invalid argument type")
+            args.append(arg)
 
-        return res
+        inst = Instruction(inst.value, args)
+        val = inst.validate()
+        if val is not None:
+            return self._error(val[1], val[0])
+        return inst
 
-    def _next_tok(self) -> Token:
+    @staticmethod
+    def _new_arg(token: Token) -> Union[Arg, None]:
+        match token.type:
+            case TokenType.LABEL \
+                | TokenType.IDENT \
+                | TokenType.NIL \
+                | TokenType.BOOL \
+                | TokenType.INT \
+                | TokenType.STRING \
+                | TokenType.TYPE:
+                return Arg(token)
+            case _:
+                return None
+
+    def _next_tok(self) -> list[Token]:
         self.cur = self.lexer.next()
         # Implicitly propagate lexer errors
-        if self.cur.type == TokenType.ERR:
-            self._error(self.cur.value)
+        if self.cur[0].type == TokenType.ERR:
+            self._error(self.cur[0].value)
         return self.cur
 
     def _error(self, msg: str, code: Error = Error.PARSE) -> None:

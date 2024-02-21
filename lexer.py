@@ -5,7 +5,6 @@ import re
 class TokenType(Enum):
     EOF = auto()
     ERR = auto()
-    NEWLINE = auto()
     DIRECTIVE = auto()
     # label represents opcode, label name or type. Which of these it is is
     # determined by parser based on context.
@@ -37,55 +36,41 @@ class Lexer:
     def __init__(self, input: TextIO) -> None:
         # The input stream
         self.input = input
-        # Tokens to be returned, the list is reversed (first token to be
-        # returned is the last in the list)
-        self.queue: list[Token] = []
         # comments will be ignored with tokenization, the stats about them must
         # be collected here
         self.comment_count = 0
 
-    def next(self) -> Token:
+    def next(self) -> list[Token]:
         """Gets the next token"""
 
-        # if the queue contains tokens, return from there otherwise read new
-        # tokens
-        return self._read_next() if not self.queue else self.queue.pop()
+        n = self._read_next();
+        while not n:
+            n = self._read_next();
+        return n
 
-    def _read_next(self) -> Token:
+    def _read_next(self) -> list[Token]:
         """Reads next line of input and creates it into tokens"""
 
         # read next line and check for eof
         line = self.input.readline()
         if not line:
-            return Token(TokenType.EOF)
+            return [Token(TokenType.EOF)]
 
-        # last token of each line is always newline
-        self.queue.append(Token(TokenType.NEWLINE))
-        comment = False
-        # The tokens in the source are always separated by whitespace and there
-        # are no other whitespaces so we can split by whitespace.
-        # The tokens are reversed so that they can be efficiently readed from
-        # the queue.
-        for s in reversed(line.split()):
+        queue: list[Token] = []
+
+        for s in line.split():
             # check for comments
             spl = s.split('#', maxsplit=1)
+            if spl[0]:
+                t = Lexer._parse_token(spl[0]);
+                if t.type == TokenType.ERR:
+                    return [t]
+                queue.append(t)
             if len(spl) > 1:
-                comment = True
-                # reading from back, ignore what was already readed
-                self.queue.clear()
-                # don't forget to add the newline as the last token
-                self.queue.append(Token(TokenType.NEWLINE))
-                if spl[0]:
-                    self.queue.append(Lexer._parse_token(spl[0]))
-            else:
-                self.queue.append(Lexer._parse_token(s))
+                self.comment_count += 1;
+                return queue
 
-        # increase comment count if there was comment on this line
-        if comment:
-            self.comment_count += 1
-
-        # the queue always contains at least newline
-        return self.queue.pop()
+        return queue
 
     @staticmethod
     def _parse_token(s: str) -> Token:
