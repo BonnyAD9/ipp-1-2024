@@ -209,7 +209,7 @@ class Parser:
             if self.cur.type == TokenType.DIRECTIVE:
                 self._error(
                     f"Unexpected token DIRECTIVE({self.cur.value})",
-                    Error.INVALID_OPCODE
+                    Error.PARSE
                 )
                 return []
 

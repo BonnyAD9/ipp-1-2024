@@ -12,7 +12,8 @@ def main(argv: list[str]) -> Error:
     args = parse_args(argv)
     match args.action:
         case Action.PARSE:
-            return parse(args, open("testfile.IPPcode24", encoding = "utf-8"))
+            return parse(args, sys.stdin)
+            # return parse(args, open("testfile.IPPcode24", encoding = "utf-8"))
         case Action.HELP:
             print_help()
             return Error.NONE
