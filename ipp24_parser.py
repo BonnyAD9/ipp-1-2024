@@ -82,27 +82,29 @@ class Arg:
         # convert argument to xml element
 
         # the type needs tobe converted to string
-        type_str = ""
+        type_s = ""
         match self.type:
             case TokenType.LABEL:
-                type_str = "label"
+                type_s = "label"
             case TokenType.IDENT:
-                type_str = "var"
+                type_s = "var"
             case TokenType.NIL:
-                type_str = "nil"
+                type_s = "nil"
             case TokenType.BOOL:
-                type_str = "bool"
+                type_s = "bool"
             case TokenType.INT:
-                type_str = "int"
+                type_s = "int"
             case TokenType.STRING:
-                type_str = "string"
+                type_s = "string"
             case TokenType.TYPE:
-                type_str = "type"
+                type_s = "type"
             case _:
                 raise ValueError("Invalid argumen type 'self.type'")
 
         # write the element
-        out.write(f'<arg{order} type="{type_str}">{self.value}</arg{order}>')
+        out.write(
+            f'        <arg{order} type="{type_s}">{self.value}</arg{order}>\n'
+        )
 
 class Instruction:
     """Represents IPPcode24 instruction, that is its opcode and arguments"""
@@ -157,14 +159,16 @@ class Instruction:
 
     def write_xml(self, order: int, out: TextIO):
         # start the instruction tag
-        out.write(f'<instruction order="{order}" opcode="{self.opcode}">')
+        out.write(
+            f'    <instruction order="{order}" opcode="{self.opcode}">\n'
+        )
 
         # write the arguments
         for (idx, arg) in enumerate(self.args):
             arg.write_xml(idx + 1, out)
 
         # end the instruction tag
-        out.write('</instruction>')
+        out.write('    </instruction>\n')
 
 class Parser:
     def __init__(self, lexer: Lexer) -> None:

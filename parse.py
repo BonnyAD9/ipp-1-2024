@@ -64,7 +64,9 @@ def make_xml(insts: list[Instruction], out: TextIO):
 
     # the xml header and program tag
     out.write(
-        '<?xml version="1.0" encoding="UTF-8"?><program language="IPPcode24">'
+        """<?xml version="1.0" encoding="UTF-8"?>
+<program language="IPPcode24">
+"""
     )
 
     # write instrucitons
@@ -72,7 +74,7 @@ def make_xml(insts: list[Instruction], out: TextIO):
         inst.write_xml(idx + 1, out)
 
     # close the program tag
-    out.write('</program>')
+    out.write('</program>\n')
 
 def print_help():
     """Prints help to stdout."""
